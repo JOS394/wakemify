@@ -1,0 +1,52 @@
+name: Release Wakemify
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Build application
+        run: wails build -clean -platform darwin/universal
+
+      - name: Package DMG
+        run: |
+          create-dmg \
+            --volname "Wakemify Installer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "wakemify.app" 150 190 \
+            --hide-extension "wakemify.app" \
+            --app-drop-link 450 190 \
+            "Wakemify-Installer.dmg" \
+            "build/bin/wakemify.app"
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Wakemify-Installer.dmg
+          generate_release_notes: true
