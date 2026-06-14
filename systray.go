@@ -8,6 +8,7 @@ package main
 #import <Cocoa/Cocoa.h>
 
 static id g_statusItem = nil;
+static id g_handler = nil;
 
 extern void goOnToggleWindow(void);
 extern void setWindowPosition(double, double);
@@ -17,17 +18,20 @@ extern void setWindowPosition(double, double);
 
 @implementation WakemifyHandler
 - (void)statusItemAction {
-	NSWindow *btnWindow = [[g_statusItem button] window];
 	double x = 0, y = 0;
-	if (btnWindow) {
-		NSRect btnFrame = [[g_statusItem button] frame];
-		NSRect windowFrame = [btnWindow frame];
-		x = windowFrame.origin.x + btnFrame.origin.x;
-		y = windowFrame.origin.y + windowFrame.size.height - 2;
+	NSScreen *screen = [NSScreen mainScreen];
+	if (!screen) screen = [[NSScreen screens] firstObject];
+	NSRect visibleFrame = [screen visibleFrame];
+	id button = [g_statusItem button];
+	NSWindow *btnWindow = [button window];
+	if (button && btnWindow) {
+		NSRect btnFrame = [button frame];
+		NSRect winFrame = [btnWindow frame];
+		x = (winFrame.origin.x + btnFrame.origin.x) - visibleFrame.origin.x;
+		y = 2;
 	} else {
-		NSScreen *screen = [NSScreen mainScreen];
-		x = [screen frame].size.width - 240;
-		y = [screen frame].size.height - 2;
+		x = visibleFrame.size.width - 240;
+		y = 2;
 	}
 	setWindowPosition(x, y);
 	goOnToggleWindow();
@@ -38,9 +42,9 @@ void setupStatusBar(void) {
 	void (^block)(void) = ^{
 		@autoreleasepool {
 			g_statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
-			id handler = [[WakemifyHandler alloc] init];
+			g_handler = [[WakemifyHandler alloc] init];
 			[g_statusItem setAction:@selector(statusItemAction)];
-			[g_statusItem setTarget:handler];
+			[g_statusItem setTarget:g_handler];
 		}
 	};
 	if ([NSThread isMainThread]) { block(); }
@@ -51,9 +55,25 @@ static void do_setStatusIcon(const unsigned char* data, int len) {
 	NSData *nsData = [NSData dataWithBytes:data length:len];
 	NSImage *image = [[NSImage alloc] initWithData:nsData];
 	[image setTemplate:YES];
+	[image setSize:NSMakeSize(22, 22)];
 	[g_statusItem setImage:image];
 	[image release];
 }
+
+static void do_removeButtons(void) {
+	NSArray *windows = [NSApp windows];
+	for (NSWindow *win in windows) {
+		NSString *className = NSStringFromClass([win class]);
+		if ([className containsString:@"StatusBar"] || [className containsString:@"NSStatus"]) continue;
+		[[win standardWindowButton:NSWindowCloseButton] setHidden:YES];
+		[[win standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
+		[[win standardWindowButton:NSWindowZoomButton] setHidden:YES];
+	}
+}
+void removeStandardWindowButtons(void) {
+	dispatch_async(dispatch_get_main_queue(), ^{ do_removeButtons(); });
+}
+
 void setStatusIcon(const unsigned char* data, int len) {
 	if ([NSThread isMainThread]) { do_setStatusIcon(data, len); }
 	else {
@@ -81,6 +101,10 @@ func (sm *SystrayManager) Run() {
 	smInstance = sm
 	C.setupStatusBar()
 	sm.UpdateUI(false)
+}
+
+func removeWindowButtons() {
+	C.removeStandardWindowButtons()
 }
 
 func (sm *SystrayManager) UpdateUI(active bool) {

@@ -9,7 +9,15 @@ export function GetRemainingTime():Promise<number>;
 
 export function GetStatus():Promise<boolean>;
 
+export function IsLaunchAtStartup():Promise<boolean>;
+
+export function OpenURL(arg1:string):Promise<void>;
+
 export function QuitApp():Promise<void>;
+
+export function RestoreMenuPosition():Promise<void>;
+
+export function SetLaunchAtStartup(arg1:boolean):Promise<boolean>;
 
 export function SetOnExpire(arg1:any):Promise<void>;
 

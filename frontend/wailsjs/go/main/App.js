@@ -18,8 +18,24 @@ export function GetStatus() {
   return window['go']['main']['App']['GetStatus']();
 }
 
+export function IsLaunchAtStartup() {
+  return window['go']['main']['App']['IsLaunchAtStartup']();
+}
+
+export function OpenURL(arg1) {
+  return window['go']['main']['App']['OpenURL'](arg1);
+}
+
 export function QuitApp() {
   return window['go']['main']['App']['QuitApp']();
+}
+
+export function RestoreMenuPosition() {
+  return window['go']['main']['App']['RestoreMenuPosition']();
+}
+
+export function SetLaunchAtStartup(arg1) {
+  return window['go']['main']['App']['SetLaunchAtStartup'](arg1);
 }
 
 export function SetOnExpire(arg1) {
