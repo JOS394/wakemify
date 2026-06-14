@@ -18,6 +18,7 @@ type App struct {
 	power         *PowerManager
 	onExpire      func()
 	windowVisible bool
+	lastBlurTime  time.Time
 }
 
 func NewApp() *App {
@@ -35,12 +36,6 @@ func (a *App) startup(ctx context.Context) {
 
 	runtime.WindowHide(ctx)
 
-	// Remove window buttons after a short delay to ensure window is ready
-	go func() {
-		time.Sleep(200 * time.Millisecond)
-		removeWindowButtons()
-	}()
-
 	a.power.SetOnExpire(func() {
 		runtime.EventsEmit(a.ctx, "timer-expired")
 		if smInstance != nil {
@@ -51,6 +46,14 @@ func (a *App) startup(ctx context.Context) {
 		}
 	})
 
+}
+
+func (a *App) HandleWindowBlur() {
+	a.windowVisible = false
+	a.lastBlurTime = time.Now()
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "window-visible", false)
+	}
 }
 
 func (a *App) Toggle() (bool, error) {

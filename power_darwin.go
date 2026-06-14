@@ -12,7 +12,7 @@ IOPMAssertionID createPMAssertion(const char* reason) {
     CFStringRef reasonStr = CFStringCreateWithCString(kCFAllocatorDefault, reason, kCFStringEncodingUTF8);
     IOPMAssertionID assertionID;
     IOReturn result = IOPMAssertionCreateWithName(
-        kIOPMAssertionTypePreventUserIdleSystemSleep,
+        kIOPMAssertionTypePreventUserIdleDisplaySleep,
         kIOPMAssertionLevelOn,
         reasonStr,
         &assertionID

@@ -7,6 +7,7 @@ package main
 import "C"
 import (
 	"os"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -21,20 +22,28 @@ func setWindowPosition(x, y float64) {
 
 //export goOnToggleWindow
 func goOnToggleWindow() {
-	if smInstance == nil || smInstance.app.ctx == nil {
-		return
-	}
-	ctx := smInstance.app.ctx
+	go func() {
+		if smInstance == nil || smInstance.app.ctx == nil {
+			return
+		}
+		ctx := smInstance.app.ctx
 
-	if smInstance.app.windowVisible {
-		runtime.WindowHide(ctx)
-		smInstance.app.windowVisible = false
-		return
-	}
+		if smInstance.app.windowVisible {
+			runtime.WindowHide(ctx)
+			smInstance.app.windowVisible = false
+			runtime.EventsEmit(ctx, "window-visible", false)
+			return
+		}
 
-	runtime.WindowSetPosition(ctx, int(windowX), int(windowY))
-	runtime.WindowShow(ctx)
-	smInstance.app.windowVisible = true
+		if time.Since(smInstance.app.lastBlurTime) < 200*time.Millisecond {
+			return
+		}
+
+		runtime.WindowSetPosition(ctx, int(windowX), int(windowY))
+		runtime.WindowShow(ctx)
+		smInstance.app.windowVisible = true
+		runtime.EventsEmit(ctx, "window-visible", true)
+	}()
 }
 
 //export goOnQuit

@@ -9,6 +9,8 @@ export function GetRemainingTime():Promise<number>;
 
 export function GetStatus():Promise<boolean>;
 
+export function HandleWindowBlur():Promise<void>;
+
 export function IsLaunchAtStartup():Promise<boolean>;
 
 export function OpenURL(arg1:string):Promise<void>;

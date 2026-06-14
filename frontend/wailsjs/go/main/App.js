@@ -18,6 +18,10 @@ export function GetStatus() {
   return window['go']['main']['App']['GetStatus']();
 }
 
+export function HandleWindowBlur() {
+  return window['go']['main']['App']['HandleWindowBlur']();
+}
+
 export function IsLaunchAtStartup() {
   return window['go']['main']['App']['IsLaunchAtStartup']();
 }

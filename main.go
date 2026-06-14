@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
@@ -37,6 +38,9 @@ func main() {
 		},
 		BackgroundColour: &options.RGBA{R: 30, G: 30, B: 30, A: 255},
 		OnStartup:        app.startup,
+		OnDomReady: func(ctx context.Context) {
+			removeWindowButtons()
+		},
 		Bind: []interface{}{
 			app,
 		},

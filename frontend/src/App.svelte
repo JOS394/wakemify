@@ -11,14 +11,15 @@
     RestoreMenuPosition,
     SetLaunchAtStartup,
     IsLaunchAtStartup,
+    HandleWindowBlur,
   } from "../wailsjs/go/main/App.js";
   import {
     EventsOn,
     WindowSetSize,
     WindowCenter,
+    WindowHide,
   } from "../wailsjs/runtime/runtime.js";
   import {
-    Moon,
     Sun,
     Clock,
     Power,
@@ -37,22 +38,50 @@
   let timerInterval: number | undefined;
   let view: "menu" | "about" = "menu";
   let launchAtStartup = false;
+  let isWindowVisible = false;
 
   onMount(async () => {
     const status = await GetStatus();
     active = status;
 
-    if (status) {
-      startRemainingTimer();
-    }
-
     const startup = await IsLaunchAtStartup();
     launchAtStartup = startup;
+
+    window.addEventListener("blur", () => {
+      WindowHide();
+      HandleWindowBlur();
+    });
 
     EventsOn("timer-expired", () => {
       active = false;
       clearInterval(timerInterval);
+      timerInterval = undefined;
       remainingSeconds = 0;
+    });
+
+    EventsOn("window-visible", async (visible: boolean) => {
+      isWindowVisible = visible;
+      if (visible) {
+        const status = await GetStatus();
+        active = status;
+        if (status) {
+          const secs = await GetRemainingTime();
+          remainingSeconds = secs;
+          if (secs > 0) {
+            startClientTimer();
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = undefined;
+          }
+        } else {
+          remainingSeconds = 0;
+          clearInterval(timerInterval);
+          timerInterval = undefined;
+        }
+      } else {
+        clearInterval(timerInterval);
+        timerInterval = undefined;
+      }
     });
   });
 
@@ -60,14 +89,22 @@
     clearInterval(timerInterval);
   });
 
-  function startRemainingTimer() {
+  let lastTickTime = 0;
+
+  function startClientTimer() {
     clearInterval(timerInterval);
-    timerInterval = window.setInterval(async () => {
-      const secs = await GetRemainingTime();
-      remainingSeconds = secs;
-      if (secs <= 0) {
-        active = false;
-        clearInterval(timerInterval);
+    lastTickTime = Date.now();
+    timerInterval = window.setInterval(() => {
+      const now = Date.now();
+      const delta = Math.round((now - lastTickTime) / 1000);
+      if (delta >= 1) {
+        remainingSeconds = Math.max(0, remainingSeconds - delta);
+        lastTickTime = now;
+        if (remainingSeconds <= 0) {
+          active = false;
+          clearInterval(timerInterval);
+          timerInterval = undefined;
+        }
       }
     }, 1000);
   }
@@ -77,7 +114,9 @@
     try {
       const result = await Toggle();
       active = result;
-      if (!result) remainingSeconds = 0;
+      remainingSeconds = 0;
+      clearInterval(timerInterval);
+      timerInterval = undefined;
     } catch (e) {
       errorMsg = String(e);
     }
@@ -88,7 +127,10 @@
     try {
       const result = await ActivateForMinutes(minutes);
       active = result;
-      if (result) startRemainingTimer();
+      if (result) {
+        remainingSeconds = minutes * 60;
+        startClientTimer();
+      }
     } catch (e) {
       errorMsg = String(e);
     }
@@ -101,6 +143,7 @@
       active = false;
       remainingSeconds = 0;
       clearInterval(timerInterval);
+      timerInterval = undefined;
     } catch (e) {
       errorMsg = String(e);
     }
