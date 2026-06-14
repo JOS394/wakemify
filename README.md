@@ -1,6 +1,6 @@
 # Wakemify
 
-Keep your Mac awake — una aplicacion ligera y rapida para mantener encendida la pantalla de tu macbook.
+Wakemify — una aplicacion ligera y rapida para mantener encendida la pantalla de tu macbook.
 
 ## Features
 
