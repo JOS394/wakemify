@@ -1,18 +1,17 @@
 # Wakemify
 
-Keep your Mac awake — una app de menubar como Amphetamine o Caffeine, construida con Wails.
+Keep your Mac awake — una aplicacion ligera y rapida para mantener encendida la pantalla de tu macbook.
 
 ## Features
 
-- Prevención de sueño del sistema vía IOKit (`PreventUserIdleSystemSleep`)
+- Prevención de sueño del sistema de forma nativa
 - Icono en la barra de menú (menubar) con indicador visual Sol/Luna
 - Ventana popover al hacer click en el icono
 - Activar indefinidamente o con temporizador: 30 min, 1 hora, 2 horas, 5 horas
 - Timer countdown en tiempo real
-- Interfaz oscura nativa con iconos Lucide
+- Interfaz oscura nativa con iconos modernos
 - About Wakemify con info del proyecto, donación y contacto
-- Iniciar con el sistema (checkbox en About)
-- Cierre automático al perder foco
+- Iniciar al encender el sistema
 
 ## Stack
 
