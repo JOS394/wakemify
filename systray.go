@@ -45,6 +45,7 @@ void setupStatusBar(void) {
 			g_handler = [[WakemifyHandler alloc] init];
 			[g_statusItem setAction:@selector(statusItemAction)];
 			[g_statusItem setTarget:g_handler];
+			[[g_statusItem button] sendActionOn:NSEventMaskLeftMouseDown];
 		}
 	};
 	if ([NSThread isMainThread]) { block(); }
